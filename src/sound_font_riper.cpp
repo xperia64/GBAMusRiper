@@ -28,6 +28,7 @@ static bool verbose_flag = false;
 static bool verbose_output_to_file = false;
 static bool change_sample_rate = false;
 static bool gm_preset_names = false;
+static bool force_output_unused = false;
 
 static unsigned int sample_rate = 22050;
 static std::set<uint32_t> addresses;
@@ -232,7 +233,7 @@ static void duty_cycle(int duty)
 static void verbose_instrument(const inst_data inst, bool recursive)
 {
 	// Do nothing with unused instruments
-	if(inst.word0 == 0x3c01 && inst.word1 == 0x02 && inst.word2 == 0x0F0000) return;
+	if(!force_output_unused && inst.word0 == 0x3c01 && inst.word1 == 0x02 && inst.word2 == 0x0F0000) return;
 
 	uint8_t instr_type = inst.word0 & 0xff;
 	fprintf(out_txt, "  Type : 0x%x  ", instr_type);
@@ -473,6 +474,9 @@ static void parse_arguments(const int argc, char *const argv[])
 						exit(-1);
 					}
 				}
+			}else if(argv[i][1] == 'f')
+			{
+				force_output_unused = true;
 			}
 
 			// Change sampling rate if -s is encountered
@@ -618,7 +622,8 @@ int main(const int argc, char *const argv[])
 			print("\nBank : " + std::to_string(current_bank) + ", Instrument : " + std::to_string(current_instrument) + " @0x" + hex(current_address));
 
 			// Ignore unused instruments
-			if(instr_data[current_instrument].word0 == 0x3c01
+			if(!force_output_unused
+			&& instr_data[current_instrument].word0 == 0x3c01
 			&& instr_data[current_instrument].word1 == 0x02
 			&& instr_data[current_instrument].word2 == 0x0F0000)
 			{

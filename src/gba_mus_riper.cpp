@@ -33,6 +33,7 @@ static bool xg = false;
 static bool rc = false;
 static bool sb = false;
 static bool raw = false;
+static bool force_output_unused = false;
 static uint32_t song_tbl_ptr = 0;
 
 static const int sample_rates[] = {-1, 5734, 7884, 10512, 13379, 15768, 18157, 21024, 26758, 31536, 36314, 40137, 42048};
@@ -55,6 +56,7 @@ static void print_instructions()
 		"       velocities and without simulating vibratos.\n"
 		"-adr : Force adress of the song table manually. This is required for manually dumping music data\n"
 		"       from ROMs where the location can't be detected automatically.\n"
+		"-f   : Force exporting unused instruments.\n"
 	);
 	exit(0);
 }
@@ -102,6 +104,8 @@ static void parse_args(const int argc, char *const args[])
 				sb = true;
 			else if(!strcmp(args[i], "-raw"))
 				raw = true;
+			else if(!strcmp(args[i], "-f"))
+				force_output_unused = true;
 			else
 			{
 				fprintf(stderr, "Error : Unknown command line option : %s. Try with -help to get information.\n", args[i]);
@@ -332,6 +336,7 @@ int main(int argc, char *const argv[])
 			if(sample_rate) sf_rip_args += " -s" + std::to_string(sample_rate);
 			if(main_volume)	sf_rip_args += " -mv" + std::to_string(main_volume);
 			if(gm) sf_rip_args += " -gm";
+			if(force_output_unused) sf_rip_args += " -f";
 			sf_rip_args += " 0x" + hex(*j);
 
 // 			printf("DEBUG : Goint to call system(%s)\n", sf_rip_args.c_str());
@@ -348,6 +353,7 @@ int main(int argc, char *const argv[])
 		if(main_volume) sf_rip_args += " -mv" + std::to_string(main_volume);
 		// Pass -gm argument if necessary
 		if(gm) sf_rip_args += " -gm";
+		if(force_output_unused) sf_rip_args += " -f";
 
 		// Make sound banks addresses list.
 		for(bank_t j=sound_bank_list.begin(); j != sound_bank_list.end(); ++j)
